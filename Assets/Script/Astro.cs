@@ -7,9 +7,15 @@ public class Astro : MonoBehaviour
     private Vector2 target;
     float placetostop = 0;
     public float Astrospeed;
+    public GameObject Alien;
+    public GameObject Pirate;
+    private bool isFollowingPirate = false;
+    private float followTimer = 0f; 
+    private float respawnTimer = 0f;
+    private bool isCollapsing = false; 
     public enum AstroState{
         Floating,
-        Standing,
+        Collapsing,
         Jumping
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -21,6 +27,17 @@ public class Astro : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (isFollowingPirate)
+        {
+            FollowPirate();
+            return; 
+        }
+
+        if (isCollapsing)
+        {
+            CollapseAndRespawn();
+            return;
+        }
         UpdateState();
     }
 
@@ -32,8 +49,9 @@ public class Astro : MonoBehaviour
         EndState(currentState);
         switch(newState)
         {
-            case AstroState.Standing:
-
+            case AstroState.Collapsing:
+                isCollapsing = true;
+                respawnTimer = 5f; 
                 break;
 
             case AstroState.Floating:
@@ -49,12 +67,9 @@ public class Astro : MonoBehaviour
 
 
     public void UpdateState(){
+  
         switch(currentState)
             {
-                case AstroState.Standing:
-
-
-                    break;
 
                 case AstroState.Floating:
 
@@ -74,6 +89,36 @@ public class Astro : MonoBehaviour
         return Camera.main.ScreenToWorldPoint(new Vector3(xcoord,ycoord,0));
     }
 
+
+private void CollapseAndRespawn()
+    {
+        if (transform.localScale.x > 0.1f)
+        {
+            transform.localScale -= new Vector3(Time.deltaTime, Time.deltaTime, 0); // getting smaller
+        }
+        else
+        {
+            gameObject.SetActive(false); // dissappear
+            respawnTimer -= Time.deltaTime;
+
+            if (respawnTimer <= 0)
+            {
+                Respawn();
+            }
+        }
+    }
+    private void Respawn()
+    {
+        if (Alien != null)
+        {
+            transform.position = (Vector2)Alien.transform.position + Vector2.down * 1.5f;
+        }
+        transform.localScale = Vector3.one; // back to normal scale
+        gameObject.SetActive(true);
+        isCollapsing = false;
+        StartState(AstroState.Floating);
+    }
+
     private void AstroFloat(){
         
         float TheDistance = Vector2.Distance(transform.position,target);
@@ -85,6 +130,34 @@ public class Astro : MonoBehaviour
             target = AstroTarget();
         }
     }
+
+    private void FollowPirate()
+    {
+        if (Pirate != null)
+        {
+            transform.position = Pirate.transform.position + new Vector3(-1, 0, 0); // Follow Pirate
+        }
+
+        followTimer -= Time.deltaTime;
+        if (followTimer <= 0)
+        {
+            isFollowingPirate = false;
+            StartState(AstroState.Floating);
+        }
+    }
+    private void OnCollisionStay2D(Collision2D collision)
+                    {
+                        if (collision.gameObject == Alien) 
+                        {
+
+                            StartState(AstroState.Collapsing);
+                        }
+                        else if (collision.gameObject == Pirate)
+                        {
+                            isFollowingPirate = true;
+                            followTimer = 5f; // Stop following after 5sec
+                        }
+                    }
 }
 
 
