@@ -30,13 +30,13 @@ public class Astro : MonoBehaviour
         if (isFollowingPirate)
         {
             FollowPirate();
-            return; 
+        
         }
 
         if (isCollapsing)
         {
             CollapseAndRespawn();
-            return;
+    
         }
         UpdateState();
     }
@@ -98,23 +98,25 @@ private void CollapseAndRespawn()
         }
         else
         {
-            gameObject.SetActive(false); // dissappear
+            gameObject.GetComponent<SpriteRenderer>().enabled = false; // dissappear
+            Debug.Log("Respawning");
             respawnTimer -= Time.deltaTime;
 
-            if (respawnTimer <= 0)
+            if (respawnTimer <= 0.0f)
             {
+                Debug.Log("Respawned");
                 Respawn();
             }
         }
     }
     private void Respawn()
-    {
+    { 
         if (Alien != null)
         {
-            transform.position = (Vector2)Alien.transform.position + Vector2.down * 1.5f;
+            transform.position = (Vector2)Alien.transform.position + Vector2.down * 5f;
         }
         transform.localScale = Vector3.one; // back to normal scale
-        gameObject.SetActive(true);
+        gameObject.GetComponent<SpriteRenderer>().enabled = true;
         isCollapsing = false;
         StartState(AstroState.Floating);
     }
