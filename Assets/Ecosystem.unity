@@ -611,6 +611,7 @@ GameObject:
   - component: {fileID: 858902889}
   - component: {fileID: 858902888}
   - component: {fileID: 858902887}
+  - component: {fileID: 858902891}
   m_Layer: 8
   m_Name: Pirate_0
   m_TagString: Untagged
@@ -940,6 +941,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &858902891
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 858902886}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 52aeadc9b96473f48932877e0ecbc568, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pirateSpeed: 2.5
+  escapeDistance: 3
+  Astro: {fileID: 0}
 --- !u!1 &1978188157
 GameObject:
   m_ObjectHideFlags: 0
@@ -1149,7 +1165,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3b6b086ec911a87489d577d7997d3d1d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Alienspeed: 1
+  Alienspeed: 3
   Astro: {fileID: 246724228}
   Pirate: {fileID: 858902886}
 --- !u!1660057539 &9223372036854775807

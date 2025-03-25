@@ -5,6 +5,7 @@ public class Alien : MonoBehaviour
     private AlienState currentState = AlienState.Searching;
     private Vector2 target;
     public float Alienspeed = 2f;
+    private Rigidbody2D rigidbody2D;
 
     public GameObject Astro;
     public GameObject Pirate;
@@ -97,6 +98,7 @@ public class Alien : MonoBehaviour
 
     private void Patrol()
     {
+        //spriteRenderer.enabled = true;
         if (Vector2.Distance(transform.position, target) > 0.1f)
         {
             transform.position = Vector2.MoveTowards(transform.position, target, Alienspeed * Time.deltaTime);
@@ -121,16 +123,17 @@ public class Alien : MonoBehaviour
 
     private void Respawn()
     {
-        if (spriteRenderer.enabled) return; // Stop reviving
+        if (spriteRenderer.enabled) return; // 如果 Sprite 还在，说明没必要复活
 
         respawnTimer -= Time.deltaTime;
 
-        Debug.Log("Alien respawning");
-
-        if (respawnTimer <= 0)
+        if (respawnTimer <= 5)
         {
-            transform.position = new Vector2(Random.Range(-5f, 5f), Random.Range(-5f, 5f));
-            spriteRenderer.enabled = true; // Visible
+            
+            transform.position = GetRandomScreenPosition(); // 生成到随机位置
+            spriteRenderer.enabled = true; // 重新显示
+            transform.localScale = Vector3.zero; // 确保从小变大
+            StartCoroutine(GrowEffect()); // 让 Alien 从小变大
             StartState(AlienState.Searching);
         }
     }
@@ -146,4 +149,25 @@ public class Alien : MonoBehaviour
             StartState(AlienState.Patrolling);
         }
     }
+
+    private Vector2 GetRandomScreenPosition()
+    {
+        float x = Random.Range(-7f, 7f);
+        float y = Random.Range(-4f, 4f);
+        return new Vector2(x, y);
+    }
+
+    private System.Collections.IEnumerator GrowEffect()
+    {
+        float growTime = 0.5f; 
+        float elapsed = 0f;
+        while (elapsed < growTime)
+        {
+            transform.localScale = Vector3.Lerp(Vector3.zero, Vector3.one, elapsed / growTime);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+        transform.localScale = Vector3.one;
+    }
+
 }
