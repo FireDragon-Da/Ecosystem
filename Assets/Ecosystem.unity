@@ -1149,9 +1149,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3b6b086ec911a87489d577d7997d3d1d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Alienspeed: 0
-  Astro: {fileID: 0}
-  Pirate: {fileID: 0}
+  Alienspeed: 1
+  Astro: {fileID: 246724228}
+  Pirate: {fileID: 858902886}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

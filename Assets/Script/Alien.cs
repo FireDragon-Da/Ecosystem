@@ -2,163 +2,148 @@ using UnityEngine;
 
 public class Alien : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     private AlienState currentState = AlienState.Searching;
-
     private Vector2 target;
-    float placetostop = 0;
-    public float Alienspeed;
+    public float Alienspeed = 2f;
+
     public GameObject Astro;
     public GameObject Pirate;
-    private bool isFollowingPirate = false;
-    private float followTimer = 0f; 
+    
     private float respawnTimer = 0f;
-    private bool isCollapsing = false; 
-    public enum AlienState{
+    private bool isFacingPirate = false;
+
+    private SpriteRenderer spriteRenderer;
+
+    public enum AlienState
+    {
         Searching,
         Patrolling,
-        Jumping
+        Facing,
+        Respawning
     }
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+
     void Start()
     {
+        spriteRenderer = GetComponent<SpriteRenderer>();
         StartState(AlienState.Searching);
     }
 
-    // Update is called once per frame
     void Update()
     {
         UpdateState();
     }
 
-
-
-   
     public void StartState(AlienState newState)
     {
         EndState(currentState);
-        switch(newState)
+
+        switch (newState)
         {
             case AlienState.Patrolling:
-                isCollapsing = true;
-                respawnTimer = 5f; 
+                target = SelectRandomCorner();
                 break;
 
-            case AlienState.Searching:
+            case AlienState.Facing:
+                isFacingPirate = true;
+                transform.rotation = Quaternion.Euler(0, 0, 90); // knock down
+                spriteRenderer.enabled = false; // disappear
+                StartState(AlienState.Respawning);
+                break;
 
-                Vector2 target = AlienTarget();
-                Debug.Log("Activated");
-
+            case AlienState.Respawning:
+                if (spriteRenderer.enabled == false){
+                    respawnTimer = 5f; // Respawn timer
+                }
                 break;
         }
-            currentState = newState;
+
+        currentState = newState;
     }
 
-
-
-    public void UpdateState(){
-  
-        switch(currentState)
-            {
-
-                case AlienState.Searching:
-
-                    AlienSearch();
-                    break;
-            }
-    }
-    public void EndState(AlienState oldState){
-        switch(oldState){
-        }
-    }
-
-    public Vector2 AlienTarget(){
-        Debug.Log("Alien Targeting");
-        float pos = Random.Range(0,3);
-        if(pos == 0){
-            float xcoord = Screen.width;
-            float ycoord = Screen.height;
-            return Camera.main.ScreenToWorldPoint(new Vector3(xcoord,ycoord,-1));
-        }
-        else if (pos == 1){
-            float xcoord = Screen.width/2;
-            float ycoord = Screen.height/2;
-            return Camera.main.ScreenToWorldPoint(new Vector3(xcoord,ycoord,-1));
-        }
-        else if (pos == 2){
-            float xcoord = 0;
-            float ycoord = Screen.height/2;
-            return Camera.main.ScreenToWorldPoint(new Vector3(xcoord,ycoord,-1));
-        }
-        else {
-            float xcoord = Screen.width/2;
-            float ycoord = 0;
-            return Camera.main.ScreenToWorldPoint(new Vector3(xcoord,ycoord,-1));
-        }
-    }
-
-
-private void CollapseAndRespawn()
+    public void UpdateState()
     {
-        if (transform.localScale.x > 0.1f)
+        switch (currentState)
         {
-            transform.localScale -= new Vector3(Time.deltaTime, Time.deltaTime, 0); // getting smaller
+            case AlienState.Searching:
+                AlienSearch();
+                break;
+
+            case AlienState.Patrolling:
+                Patrol();
+                break;
+
+            case AlienState.Respawning:
+                Respawn();
+                break;
+        }
+    }
+
+    public void EndState(AlienState oldState)
+    {
+        if (oldState == AlienState.Facing)
+        {
+            isFacingPirate = false;
+            transform.rotation = Quaternion.identity; // back to normal angle
+        }
+    }
+
+    private Vector2 SelectRandomCorner()
+    {
+        int choice = Random.Range(0, 4);
+        float x = (choice % 2 == 0) ? 0 : Screen.width;
+        float y = (choice < 2) ? Screen.height : 0;
+        return Camera.main.ScreenToWorldPoint(new Vector3(x, y, 0));
+    }
+
+    private void Patrol()
+    {
+        if (Vector2.Distance(transform.position, target) > 0.1f)
+        {
+            transform.position = Vector2.MoveTowards(transform.position, target, Alienspeed * Time.deltaTime);
         }
         else
         {
-            gameObject.GetComponent<SpriteRenderer>().enabled = false; // dissappear
-            Debug.Log("Respawning");
-            respawnTimer -= Time.deltaTime;
-
-            if (respawnTimer <= 0.0f)
-            {
-                Debug.Log("Respawned");
-                Respawn();
-            }
-        }
-    }
-    private void Respawn()
-    { 
-        
-    }
-
-    private void AlienSearch(){
-        
-        float TheDistance = Vector2.Distance(transform.position,target);
-        if (TheDistance > placetostop ){
-            transform.position = Vector2.MoveTowards(transform.position,target,Alienspeed);
-            Debug.Log("Searching");
-        }
-        else{
-            target = AlienTarget();
+            target = SelectRandomCorner();
         }
     }
 
-    private void FollowPirate()
+    private void AlienSearch()
     {
-        if (Pirate != null)
+        if (Vector2.Distance(transform.position, target) > 0.1f)
         {
-            transform.position = Pirate.transform.position + new Vector3(-1, 0, 0); // Follow Pirate
+            transform.position = Vector2.MoveTowards(transform.position, target, Alienspeed * Time.deltaTime);
         }
-
-        followTimer -= Time.deltaTime;
-        if (followTimer <= 0)
+        else
         {
-            isFollowingPirate = false;
+            target = SelectRandomCorner();
+        }
+    }
+
+    private void Respawn()
+    {
+        if (spriteRenderer.enabled) return; // Stop reviving
+
+        respawnTimer -= Time.deltaTime;
+
+        Debug.Log("Alien respawning");
+
+        if (respawnTimer <= 0)
+        {
+            transform.position = new Vector2(Random.Range(-5f, 5f), Random.Range(-5f, 5f));
+            spriteRenderer.enabled = true; // Visible
             StartState(AlienState.Searching);
         }
     }
-    private void OnCollisionStay2D(Collision2D collision)
-                    {
-                        if (collision.gameObject == Astro) 
-                        {
 
-                            StartState(AlienState.Patrolling);
-                        }
-                        else if (collision.gameObject == Pirate)
-                        {
-                            isFollowingPirate = true;
-                            followTimer = 5f; // Stop following after 5sec
-                        }
-                    }
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject == Pirate)
+        {
+            StartState(AlienState.Facing);
+        }
+        else if (collision.gameObject == Astro)
+        {
+            StartState(AlienState.Patrolling);
+        }
+    }
 }
